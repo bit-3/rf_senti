@@ -1,0 +1,18 @@
+import sublevel from 'level-sublevel';
+
+
+export const db = new Sublevel({
+  name: 'mydb',
+  location: './mydb',
+  createIfMissing: true,
+});
+
+
+
+export class LevelDb {
+    constructor(dbPath, options = {}) {
+        this.options = options;
+        this.db = sublevel(level(dbPath, { valueEncoding: "json" }));
+    }
+}
+
