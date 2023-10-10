@@ -38,7 +38,9 @@ export const featureExtConfig =  {
 
         {scriptName:'getNat' , scriptType:'native' , scriptSource:'./native/fx3.js'},
 
-        {scriptName:'xlNet' , scriptType:'external' , scriptSource:'./external/ex1.py'}
+        {scriptName:'xlNet' , scriptType:'external' , scriptSource:'./external/ex1.py'},
+
+        {scriptName:'bert' , scriptType:'external' , scriptSource:'./external/ex2.py'}
 
 
 
@@ -85,7 +87,7 @@ export const configHelper  =  {
             switch (ext) {
 
                 case 'py' :
-                    return 'python';
+                    return 'python3.10';
                 case 'js' :
                     return 'node';
                 case 'rs' :

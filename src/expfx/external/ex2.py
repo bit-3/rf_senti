@@ -5,6 +5,7 @@ def main() :
     #print('this is from python');
     if len(sys.argv) > 1:
         serialized_data = sys.argv[1]
+
         #print(serialized_data)
         try:
             # Deserialize the JSON data to a Python object
@@ -17,8 +18,9 @@ def main() :
             d_r['news'] = ' we change the news';
 
 
+
             # Process the data and send a response back to Node.js
-            response_data = {'status': 'xlnet', 'message': d_r}
+            response_data = {'status': 'bert', 'data':d_r}
             #
             #
             # # Serialize the response data to JSON and print to stdout

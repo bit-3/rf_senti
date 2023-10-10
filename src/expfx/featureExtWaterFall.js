@@ -11,11 +11,8 @@ export class expfx extends EV {
         super();
         this.config = config;
         //console.log(this.config);
-        this.nativeSandbox = [];
         this.externalSandbox = [];
-
         // for thread the dispatch threads
-        this.threadTracker = 0;
         this.childPTracker = 0;
     }
 
@@ -27,71 +24,79 @@ export class expfx extends EV {
         };
     }
 
-    start(cb) {
-        this._iterateOverConfig(this.config, cb);
-    }
+    // for now its not async
+    dataProvider() {
+        // grab some data from network  like : {news : 'this is the crytpo area'} ;
+        // and return the results;
+        // or it can talk to another interface
 
-    // create the path to the worker source file
-    getWorkerRef(workerPath) {
-        return new URL(workerPath, import.meta.url).href;
-    }
-
-    nativeHandler(fxObject, bufferContext, isLast) {
-        // this will work on the main thread ;
-        // so we have to create another thread and talk to it and fill the bufferContext
-
-        let workerRf = this.getWorkerRef(fxObject.scriptSource);
-        const worker = new Worker(workerRf, { smol: true });
-        //worker.ref();
-
-        const that = this;
-
-        worker.postMessage({ data: { name: "keihan", age: "25", nat: "iran" }, cf: bufferContext });
-        worker.onmessage = (event) => {
-            that.nativeSandbox.push(event.data);
-            worker.terminate();
-
-            if (this.threadTracker == 1) {
-                process.nextTick(() => {
-                    // here we have the final results of all the threads
-                    this.emit("waterfall-end", this.nativeSandbox);
-                    this.threadTracker = 0;
-                });
-            }
-
-            console.log(this.threadTracker);
-            //console.log(that.nativeSandbox)
-            // this will have the effectcs on the native sandbox for each callstack.
+        return {
+            news: "this is a crypto era",
         };
+    }
 
-        worker.addEventListener("open", (ev) => {
-            worker.ref();
-            this.threadTracker++;
-        });
+    async start(cb) {
+        await this._iterateOverConfig(this.config, cb);
+    }
 
-        worker.addEventListener("close", (ev) => {
-            worker.unref();
-            this.threadTracker--;
-        });
-    } // handle the native stuffs
-
-    // create a context then put on the python object.
-    // grab the context on the python
-    // put the data on it
+    // // create the path to the worker source file
+    // getWorkerRef(workerPath) {
+    //     return new URL(workerPath, import.meta.url).href;
+    // }
+    //
+    //   nativeHandler(fxObject, bufferContext, isLast) {
+    //       // this will work on the main thread ;
+    //       // so we have to create another thread and talk to it and fill the bufferContext
+    //
+    //       let workerRf = this.getWorkerRef(fxObject.scriptSource);
+    //       const worker = new Worker(workerRf, { smol: true });
+    //       worker.ref();
+    //       this.threadTracker++;
+    //
+    //       //worker.ref();
+    //
+    //       const that = this;
+    //
+    //       worker.postMessage({ data: this.dataProvider(), cf: bufferContext });
+    //       worker.onmessage = (event) => {
+    //           that.nativeSandbox.push(event.data);
+    //           this.threadTracker --;
+    //           // already exit the process inside the process.
+    // //          worker.terminate();
+    //
+    //           // by this we can have the last thread. => its differ from proc.
+    //           if (this.threadTracker == 1) {
+    //               // here we have the final results of all the threads
+    //                   this.emit("waterfall-end");
+    //                   this.threadTracker = 0;
+    //           }
+    //
+    //           //console.log(that.nativeSandbox)
+    //           // this will have the effectcs on the native sandbox for each callstack.
+    //       };
+    //
+    //       // worker.addEventListener("open", (ev) => {
+    //       //     worker.ref();
+    //       //     this.threadTracker++;
+    //       // });
+    //       //
+    //       // worker.addEventListener("close", (ev) => {
+    //       //     worker.unref();
+    //       //     this.threadTracker--;
+    //       // });
+    //   } // handle the native stuffs
+    //
     //
 
-    externalHandler(fxObject, bufferContext) {
-        console.log("we got shiit little externals");
+    async bnStd(cb) {
+        this.ChildPTracker++;
+        return cb();
+    }
+    async externalHandler(fxObject, bufferContext) {
+        console.log("we got  externals");
         console.log(fxObject);
 
-        // check for the path is existed...
-        //
-        //
-        //
-        //
-        //
-        //
-
+        // TODO check for the path is existed...
         let extCommand;
         if (
             (extCommand = configHelper.getCommand(
@@ -99,43 +104,66 @@ export class expfx extends EV {
                 featureExtConfig.acceptExternals
             ))
         ) {
-            const exeObject = exec(
-                `${extCommand}3.10 ${fxObject.scriptSource} ${JSON.stringify(bufferContext)}`,
-                (err, stdout, stderr) => {
-                    if (err) {
-                        console.error("Error running Python script:", err);
-                        return;
-                    } else {
+            /* bun ver */
+            // we can also handle we got some stderr.
+            const that = this;
+            const proc = await Bun.spawn(
+                [`${extCommand}`, fxObject.scriptSource, JSON.stringify(this.dataProvider())],
+                {
+                    onExit(proc, exitCode, signalCode, error) {
+                        if (error) {
+                            console.log("what is error");
+                            return;
+                        }
+                        // one single external waterfall instance end.
+                        console.log("we are exiting child process");
+                        that.childPTracker--;
 
 
-                    this.childPTracker ++;
+                        if (that.childPTracker == 0) {
+                            console.log("all  proces done");
 
-                    }
-                    //
-                      // here we have to catch the stuffs and put them on buffer
-
-                    // exeObject.stdout.on("data", (data) => {
-                    //     if (data) {
-                    //         bufferContext.buffer = data;
-                    //         console.log("the data comes from some source");
-                    //         this.emit('ex-waterfall-end', bufferContext);
-                    //
-                    //     }
-                    // });
+                            that.emit("ex-waterfall-end");
+                        }
+                    },
                 }
             );
 
-            exeObject.stdout.on("data", (data) => {
-                const responseData = JSON.parse(data);
-                //console.log(`Data received from Python: ${responseData}`);
-                bufferContext.buffer.push(responseData);
-                console.log(bufferContext);
-                this.emit("ex-waterfall-end", bufferContext);
-            });
+
+            if (proc) {
+                this.childPTracker++;
+                proc.ref();
+                // handle the output of the child process.
+                const outputD = await this.bunSpawnOuputGrab(proc);
+                bufferContext.buffer.push(outputD);
+                this.externalSandbox.push(bufferContext);
+            } else {
+                console.log("sigmaaaaaaaa");
+            }
+        }
+    }
+
+    async bunSpawnOuputGrab(proc) {
+        // this is child proc object : proc
+
+        let outputD = await proc.stdout;
+
+        let assembleBuffer = "";
+
+        const decoder = new TextDecoder();
+
+        for await (const chunk of outputD) {
+            assembleBuffer += decoder.decode(chunk);
         }
 
-        //
-    } // handle the external stuffs
+        try {
+            console.log(JSON.parse(assembleBuffer));
+            return JSON.parse(assembleBuffer);
+        } catch {
+            console.log(" the value return from the external module is not json !!");
+            return {};
+        }
+    }
 
     merge() {} // have the deep cleaning stuffs and then merge in the single source of the truth
 
@@ -143,53 +171,23 @@ export class expfx extends EV {
         if (config) {
             for (let c in config.modules) {
                 // create the context for the fx object
+                //
                 const contextBuffer = this.createLocalBuffer(config.modules[c].scriptName);
 
-                switch (config.modules[c].scriptType) {
-                    //  handle this with worker threads
-                    case "native":
-                        console.log("we got some native");
-                        this.nativeHandler(config.modules[c], contextBuffer, config.modules.length);
-                        // try catch
-                        // do some native stuffs and done
-                        // break
-                        // run them with contextBuffer
-                        // handle this with child process.
-                        break;
-                    case "external":
-                        console.log("we also have some externals");
+                this.externalHandler(config.modules[c], contextBuffer);
 
-                        this.externalHandler(config.modules[c], contextBuffer);
-
-                        // try catch
-                        // handle the external executable twoard sme exe child stuffs and then grab
-                        // the results
-                        // break
-                        // // run the with contextBuffer or some how catch the results
-                        break;
-                    default:
-                        console.log("unkown fx script type");
-                        throw new Error(" unknown fx script type");
-                        // do nothing.
-                        break;
-                }
             }
 
-            this.on("waterfall-end", (d) => {
-                cb(d);
-            });
-
-            this.on("ex-waterfall-end", (d) => {
-                this.externalSandbox.push(d);
-                console.log(this.externalSandBox);
-
-            });
+                this.on("ex-waterfall-end", () => {
+                    // you can have external sandbox right now
+                    cb(this.externalSandbox);
+                });
         }
     }
 }
 
 const ff = new expfx(featureExtConfig);
-ff.start((d) => {
-    console.log("the final data is ");
+await ff.start((d) => {
+    console.log("the final data from both external and internal sources are :  ");
     console.log(d);
 });
