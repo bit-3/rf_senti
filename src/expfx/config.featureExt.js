@@ -10,16 +10,20 @@ export const featureExtConfig =  {
     // external modules that will be handled in pararell on the dataset
     modules :[
 
-        {scriptName:'getName' , scriptType:'native' , scriptSource:'./featureHandlers/fx1.js'},
+//        {scriptName:'semanticValue' , scriptType:'native' , scriptSource:'./featureHandlers/fx1.js'},
 
-        {scriptName:'getAge' , scriptType:'native' , scriptSource:'./featureHandlers/fx2.js'} ,
+        {scriptName:'getAge' , scriptType:'native' , scriptSource:'./featureHandlers/fx1.js'} ,
 
         {scriptName:'getNat' , scriptType:'native' , scriptSource:'./featureHandlers/fx3.js'},
 
         {scriptName:'xlNet' , scriptType:'external' , scriptSource:'./featureHandlers/ex1.py'},
 
         {scriptName:'bert' , scriptType:'external' , scriptSource:'./featureHandlers/ex2.py'} ,
-        {scriptName:'readablity' , scriptType:'native' , scriptSource:'./featureHandlers/readablity/rd.js'}
+
+ //       {scriptName:'readablity' , scriptType:'native' , scriptSource:'./featureHandlers/readablity/rd.js'}
+        // get semantic value
+        // get xlnet value
+        // get readability value
 
     ],
 

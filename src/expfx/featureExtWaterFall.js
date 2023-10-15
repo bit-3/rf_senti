@@ -1,6 +1,7 @@
 import EV from "events";
 import { featureExtConfig, configHelper } from "./config.featureExt.js";
-import { exec } from "child_process";
+
+import { promisify } from "util";
 
 // check for external or internal of the feature extraction model
 // collect sandboxes
@@ -13,7 +14,8 @@ export class expfx extends EV {
         //console.log(this.config);
         this.externalSandbox = [];
         // for thread the dispatch threads
-        this.childPTracker = 0;
+        this.spawnedChilds = [];
+        this.spCounter = 0;
     }
 
     // create local buffer for each thread
@@ -39,65 +41,37 @@ export class expfx extends EV {
         await this._iterateOverConfig(this.config, cb);
     }
 
-    // // create the path to the worker source file
-    // getWorkerRef(workerPath) {
-    //     return new URL(workerPath, import.meta.url).href;
-    // }
-    //
-    //   nativeHandler(fxObject, bufferContext, isLast) {
-    //       // this will work on the main thread ;
-    //       // so we have to create another thread and talk to it and fill the bufferContext
-    //
-    //       let workerRf = this.getWorkerRef(fxObject.scriptSource);
-    //       const worker = new Worker(workerRf, { smol: true });
-    //       worker.ref();
-    //       this.threadTracker++;
-    //
-    //       //worker.ref();
-    //
-    //       const that = this;
-    //
-    //       worker.postMessage({ data: this.dataProvider(), cf: bufferContext });
-    //       worker.onmessage = (event) => {
-    //           that.nativeSandbox.push(event.data);
-    //           this.threadTracker --;
-    //           // already exit the process inside the process.
-    // //          worker.terminate();
-    //
-    //           // by this we can have the last thread. => its differ from proc.
-    //           if (this.threadTracker == 1) {
-    //               // here we have the final results of all the threads
-    //                   this.emit("waterfall-end");
-    //                   this.threadTracker = 0;
-    //           }
-    //
-    //           //console.log(that.nativeSandbox)
-    //           // this will have the effectcs on the native sandbox for each callstack.
-    //       };
-    //
-    //       // worker.addEventListener("open", (ev) => {
-    //       //     worker.ref();
-    //       //     this.threadTracker++;
-    //       // });
-    //       //
-    //       // worker.addEventListener("close", (ev) => {
-    //       //     worker.unref();
-    //       //     this.threadTracker--;
-    //       // });
-    //   } // handle the native stuffs
-    //
-    //
+     createChildProc(extCommand, fxObject) {
+        // this will add one proc to the spawnedChilds
+        //const promSpawn = promisify(Bun.spawn);
+        // we put the data on the process by argv
+         // we catch the data through the stdout
 
-    async bnStd(cb) {
-        this.ChildPTracker++;
-        return cb();
+        const that = this;
+
+        const proc = Bun.spawn(
+            [`${extCommand}`, fxObject.scriptSource, JSON.stringify(this.dataProvider())],
+            {
+                onExit(proc, exitCode, signalCode, error) {
+                    if (error) {
+                        console.log("what is error");
+                        return;
+                    } // one single external waterfall instance end.
+
+                    console.log("we are exiting child process");
+
+                    that.spCounter --;
+                },
+            }
+        );
+
+
+        return proc;
     }
-    async externalHandler(fxObject, bufferContext) {
-        // console.log("we got  externals");
-        // console.log(fxObject);
 
+    externalHandler(fxObject, bufferContext) {
 
-        // TODO check for the path is existed...
+        // TODO check for the path is existed... with that config helper
         let extCommand;
         if (
             (extCommand = configHelper.getCommand(
@@ -105,123 +79,81 @@ export class expfx extends EV {
                 featureExtConfig.acceptExternals
             ))
         ) {
-            /* bun ver */
-            // we can also handle we got some stderr.
-            const proc = await Bun.spawn(
-                [`${extCommand}`, fxObject.scriptSource, JSON.stringify(this.dataProvider())],
-                {
-                    onExit(proc, exitCode, signalCode, error) {
-                        if (error) {
-                            console.log("what is error");
-                            return;
-                        }
-                        // one single external waterfall instance end.
-                        console.log("we are exiting child process");
-                        //
-                        //
-                        // if (that.childPTracker == 0) {
-                        //     console.log("all  proces done");
-                        //
-                        //     that.emit("ex-waterfall-end");
-                        // }
-                    },
-                }
-            );
 
-            return proc;
+            const proc = this.createChildProc(extCommand, fxObject);
+            // this proc is basicaly a promise and we dont yet await it .
+            // and that's the key
 
+            this.spawnedChilds.push(proc);
+            this.spCounter++;
 
-            // if (proc) {
-            //     this.childPTracker++;
-            //     proc.ref();
-            //     // handle the output of the child process.
-            //     const outputD = await this.bunSpawnOuputGrab(proc);
-            //     bufferContext.buffer.push(outputD);
-            //     this.externalSandbox.push(bufferContext);
-            // } else {
-            //     console.log("sigmaaaaaaaa");
-            // }
+            // now we have the promised based spawnedChilds.
+            console.log(`spawned number ${this.spCounter} child process`);
         }
     }
 
     async bunSpawnOuputGrab(proc) {
         // this is child proc object : proc
 
-        console.log('is that you ' );
-        console.log(proc);
         //
 
-
-
         let outputD = await proc.stdout;
-
 
         let assembleBuffer = "";
 
         const decoder = new TextDecoder();
 
-        // how to read the data from stream 
+        // how to read the data from stream
         for await (const chunk of outputD) {
             assembleBuffer += decoder.decode(chunk);
         }
 
         try {
-            console.log(JSON.parse(assembleBuffer));
             return JSON.parse(assembleBuffer);
         } catch {
-            console.log(" the value return from the external module is not json !!");
+            console.log(" the value return from the external module is not json returning {}!!");
             return {};
         }
     }
 
-    merge() {} // have the deep cleaning stuffs and then merge in the single source of the truth
+
+    // have the deep cleaning stuffs and then merge in the single source of the truth
+
+    merge(resArr) {
+        // this is the final stage of the feature extraction
+        // when you merge everything to gether
+
+    }
 
     async _iterateOverConfig(config, cb) {
         let v = [];
         if (config) {
             for (let c in config.modules) {
                 // create the context for the fx object
-                //
                 const contextBuffer = this.createLocalBuffer(config.modules[c].scriptName);
-                v.push( await this.externalHandler(config.modules[c], contextBuffer));
-
+                this.externalHandler(config.modules[c], contextBuffer);
             }
-        const that = this;
 
-        console.log(`the value length is ${v.length}`)
+            const that = this;
 
-
-            // Promise.all(v).then(async(sb)=>{
-
-
-            //     //console.log(typeof(sb));
-
-
-            //     let vl = sb.map(async(i) =>{
-            //         console.log(i);
-
-            //         // i = item; 1
-            //         // const res = await that.bunSpawnOuputGrab(sb);
-            //         // that.externalSandbox.push(res);
-            //         // return res;
+            const results = await Promise.all(this.spawnedChilds).then(async(childs) =>{
 
 
 
-            //     });
+                const res = childs.map(async(child) =>{
 
-            //     console.log(vl);
+                    return await that.bunSpawnOuputGrab(child);
+
+                });;
+
+                return await Promise.all(res);
+
+            });
+
+            console.log(results);
 
 
 
-
-            // });
-
-
-                //
-                // this.on("ex-waterfall-end", () => {
-                //     // you can have external sandbox right now
-                //     cb(this.externalSandbox);
-                // });
         }
     }
 }

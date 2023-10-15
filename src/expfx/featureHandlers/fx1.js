@@ -24,8 +24,14 @@
 //     //    event.data.cf.buffer.push(name);
 // };
 
+
+
+// get the data as input from the mother process : you can also use the send sutffs
 const d = JSON.parse(process.argv[2]);
-d.newValue = 'some ljsdfj ljsdlfjlsdfjlsdjf shiti thing from js module';
-process.stdout.write(JSON.stringify(d.newValue));
+    //add some shit to it
+d.newValue = 'this is my shit';
+setTimeout(() => {
+    process.stdout.write(JSON.stringify(d.newValue));
+} , 2000);
 
 
