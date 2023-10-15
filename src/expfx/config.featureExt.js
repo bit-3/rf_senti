@@ -1,35 +1,13 @@
 import path from 'path';
 
-/*
 
-
-config = {
-    modules : [
-        kjk{
-
-            scriptName: name..
-            scriptType : external | native ,
-            scriptSource : some native code | some external exe path with bash
-            // the scripts must put the reult in the context buffer  aggregator
-            // for extenal we have to catach them from the output or stdout of the file.
-
-            scriptSource : better to  be a path of string. only.
-
-
-
-        } ,
-        {} ,
-        {}
-
-
-
-    ]
-}
-
-*/
+// feature extraction config file : specify the external files that will operate on the dset
 export const featureExtConfig =  {
     // TODO check the input type to this objects by some typeCheckers.
 
+
+
+    // external modules that will be handled in pararell on the dataset
     modules :[
 
         {scriptName:'getName' , scriptType:'native' , scriptSource:'./native/fx1.js'},
@@ -42,29 +20,27 @@ export const featureExtConfig =  {
 
         {scriptName:'bert' , scriptType:'external' , scriptSource:'./external/ex2.py'}
 
-
-
-
     ],
 
+    // available external path extensions.
     acceptExternals : ['py', 'js' ,'go','rs']
 
 
 }
 
 
+
+
+// get some config utility on main config object
 export const configHelper  =  {
 
+    // get the current extension on the path
     getExt : (fpath) => {
         return path.extname(path.basename(fpath)).replace(/\./g,'');
     } ,
 
+    // check if we have it or not
     validExt : function (ext, acceptExternals)  {
-
-        //console.log(this.getExt(fpath));
-        //
-
-
 
         if (acceptExternals.includes(ext)) {
 
@@ -72,12 +48,10 @@ export const configHelper  =  {
 
         }
 
-
         return false;
 
-
     },
-
+    // get external command exe prefix from file extension
     getCommand : function(fpath,rules){
         const ext = this.getExt(fpath);
 
@@ -96,23 +70,24 @@ export const configHelper  =  {
                     return 'go';
 
                 default :
-                    return 'python';
-
-
+                    return 'python3.10';
 
             }
 
         }
 
 
-        console.log('the external exttension file script does not supported');
+        console.log('the external extension file script does not supported');
 
         return false;
 
 
     }
 
+
+
+    //TODO func pathExist
+
 }
-//console.log(configHelper.getCommand('./external/ex1.py', ['py', 'rs','go','js']));
 
 

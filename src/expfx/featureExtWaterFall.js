@@ -93,8 +93,9 @@ export class expfx extends EV {
         return cb();
     }
     async externalHandler(fxObject, bufferContext) {
-        console.log("we got  externals");
-        console.log(fxObject);
+        // console.log("we got  externals");
+        // console.log(fxObject);
+
 
         // TODO check for the path is existed...
         let extCommand;
@@ -106,7 +107,6 @@ export class expfx extends EV {
         ) {
             /* bun ver */
             // we can also handle we got some stderr.
-            const that = this;
             const proc = await Bun.spawn(
                 [`${extCommand}`, fxObject.scriptSource, JSON.stringify(this.dataProvider())],
                 {
@@ -117,41 +117,50 @@ export class expfx extends EV {
                         }
                         // one single external waterfall instance end.
                         console.log("we are exiting child process");
-                        that.childPTracker--;
-
-
-                        if (that.childPTracker == 0) {
-                            console.log("all  proces done");
-
-                            that.emit("ex-waterfall-end");
-                        }
+                        //
+                        //
+                        // if (that.childPTracker == 0) {
+                        //     console.log("all  proces done");
+                        //
+                        //     that.emit("ex-waterfall-end");
+                        // }
                     },
                 }
             );
 
+            return proc;
 
-            if (proc) {
-                this.childPTracker++;
-                proc.ref();
-                // handle the output of the child process.
-                const outputD = await this.bunSpawnOuputGrab(proc);
-                bufferContext.buffer.push(outputD);
-                this.externalSandbox.push(bufferContext);
-            } else {
-                console.log("sigmaaaaaaaa");
-            }
+
+            // if (proc) {
+            //     this.childPTracker++;
+            //     proc.ref();
+            //     // handle the output of the child process.
+            //     const outputD = await this.bunSpawnOuputGrab(proc);
+            //     bufferContext.buffer.push(outputD);
+            //     this.externalSandbox.push(bufferContext);
+            // } else {
+            //     console.log("sigmaaaaaaaa");
+            // }
         }
     }
 
     async bunSpawnOuputGrab(proc) {
         // this is child proc object : proc
 
+        console.log('is that you ' );
+        console.log(proc);
+        //
+
+
+
         let outputD = await proc.stdout;
+
 
         let assembleBuffer = "";
 
         const decoder = new TextDecoder();
 
+        // how to read the data from stream 
         for await (const chunk of outputD) {
             assembleBuffer += decoder.decode(chunk);
         }
@@ -167,21 +176,52 @@ export class expfx extends EV {
 
     merge() {} // have the deep cleaning stuffs and then merge in the single source of the truth
 
-    _iterateOverConfig(config, cb) {
+    async _iterateOverConfig(config, cb) {
+        let v = [];
         if (config) {
             for (let c in config.modules) {
                 // create the context for the fx object
                 //
                 const contextBuffer = this.createLocalBuffer(config.modules[c].scriptName);
-
-                this.externalHandler(config.modules[c], contextBuffer);
+                v.push( await this.externalHandler(config.modules[c], contextBuffer));
 
             }
+        const that = this;
 
-                this.on("ex-waterfall-end", () => {
-                    // you can have external sandbox right now
-                    cb(this.externalSandbox);
-                });
+        console.log(`the value length is ${v.length}`)
+
+
+            // Promise.all(v).then(async(sb)=>{
+
+
+            //     //console.log(typeof(sb));
+
+
+            //     let vl = sb.map(async(i) =>{
+            //         console.log(i);
+
+            //         // i = item; 1
+            //         // const res = await that.bunSpawnOuputGrab(sb);
+            //         // that.externalSandbox.push(res);
+            //         // return res;
+
+
+
+            //     });
+
+            //     console.log(vl);
+
+
+
+
+            // });
+
+
+                //
+                // this.on("ex-waterfall-end", () => {
+                //     // you can have external sandbox right now
+                //     cb(this.externalSandbox);
+                // });
         }
     }
 }
