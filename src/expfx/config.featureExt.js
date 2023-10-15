@@ -10,21 +10,23 @@ export const featureExtConfig =  {
     // external modules that will be handled in pararell on the dataset
     modules :[
 
-        {scriptName:'getName' , scriptType:'native' , scriptSource:'./native/fx1.js'},
+        {scriptName:'getName' , scriptType:'native' , scriptSource:'./featureHandlers/fx1.js'},
 
-        {scriptName:'getAge' , scriptType:'native' , scriptSource:'./native/fx2.js'} ,
+        {scriptName:'getAge' , scriptType:'native' , scriptSource:'./featureHandlers/fx2.js'} ,
 
-        {scriptName:'getNat' , scriptType:'native' , scriptSource:'./native/fx3.js'},
+        {scriptName:'getNat' , scriptType:'native' , scriptSource:'./featureHandlers/fx3.js'},
 
-        {scriptName:'xlNet' , scriptType:'external' , scriptSource:'./external/ex1.py'},
+        {scriptName:'xlNet' , scriptType:'external' , scriptSource:'./featureHandlers/ex1.py'},
 
-        {scriptName:'bert' , scriptType:'external' , scriptSource:'./external/ex2.py'}
+        {scriptName:'bert' , scriptType:'external' , scriptSource:'./featureHandlers/ex2.py'} ,
+        {scriptName:'readablity' , scriptType:'native' , scriptSource:'./featureHandlers/readablity/rd.js'}
 
     ],
 
     // available external path extensions.
     acceptExternals : ['py', 'js' ,'go','rs']
 
+    // we need more effecient way to handle sending data in and out in native sub process
 
 }
 
