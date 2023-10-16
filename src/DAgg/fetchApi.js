@@ -27,6 +27,7 @@ export async function collect(tableObjectReq, cb, mode) {
         buffer.push(response.data.results);
 
         if (mode == "all") {
+            // you must fix this... not work or hard to work on the webserver
             //await filler(response, 10);
             await simpleGetRq(response.data.next, (res) => {
                 buffer.push(res.data.results);
@@ -34,12 +35,12 @@ export async function collect(tableObjectReq, cb, mode) {
 
             ev.on("done", async () => {
                 //await Bun.write(`./${tableObjectReq.filter}.json`, JSON.stringify(buffer));
-                cb(_.flatten(buffer));
+               cb(_.flatten(buffer));
             });
-        } else { 
+        } else {
             // return buffer for the sinble fetch
-                
-            cb(_.flatten(buffer)); 
+
+             return cb(_.flatten(buffer));
 
         }
 

@@ -22,7 +22,7 @@ export class Expfx extends EV {
         this.externalSandbox = [];
         // for thread the dispatch threads
         this.spawnedChilds = [];
-        this.spCounter = 0;
+
     }
 
     setConfig(newConfig) {
@@ -35,7 +35,7 @@ export class Expfx extends EV {
 
     cleanUp() {
         this.externalSandbox = [];
-        this.spCounter = 0;
+
         this.spawnedChilds = [];
     }
 
@@ -85,7 +85,6 @@ export class Expfx extends EV {
 
                 console.log("we are exiting child process");
 
-                that.spCounter--;
             },
         });
 
@@ -106,10 +105,9 @@ export class Expfx extends EV {
             // and that's the key
 
             this.spawnedChilds.push(proc);
-            this.spCounter++;
 
             // now we have the promised based spawnedChilds.
-            console.log(`spawned number ${this.spCounter} child process`);
+            console.log('sub process spwnd');
         }
     }
 
@@ -184,37 +182,38 @@ export class Expfx extends EV {
     }
 }
 
-const ff = createExpfxInstnace(featureExtConfig);
-const res = await ff.accept([
-    {
-        kind: "news",
-        domain: "finbold.com",
-        votes: {
-            negative: 0,
-            positive: 4,
-            important: 3,
-            liked: 3,
-            disliked: 0,
-            lol: 0,
-            toxic: 0,
-            saved: 3,
-            comments: 0,
-        },
-        source: {
-            title: "Finbold",
-            region: "en",
-            domain: "finbold.com",
-            path: null,
-        },
-        title: "Judge rejects SEC’s interlocutory appeal request v. Ripple",
-        published_at: "2023-10-04T08:01:48Z",
-        slug: "Judge-rejects-SECs-interlocutory-appeal-request-v-Ripple",
-        id: 18946455,
-        url: "https://cryptopanic.com/news/18946455/Judge-rejects-SECs-interlocutory-appeal-request-v-Ripple",
-        created_at: "2023-10-04T08:01:48Z",
-    },
-]);
-console.log(res);
+// accept array of objects
+// const ff = createExpfxInstnace(featureExtConfig);
+// const res = await ff.accept([
+//     {
+//         kind: "news",
+//         domain: "finbold.com",
+//         votes: {
+//             negative: 0,
+//             positive: 4,
+//             important: 3,
+//             liked: 3,
+//             disliked: 0,
+//             lol: 0,
+//             toxic: 0,
+//             saved: 3,
+//             comments: 0,
+//         },
+//         source: {
+//             title: "Finbold",
+//             region: "en",
+//             domain: "finbold.com",
+//             path: null,
+//         },
+//         title: "Judge rejects SEC’s interlocutory appeal request v. Ripple",
+//         published_at: "2023-10-04T08:01:48Z",
+//         slug: "Judge-rejects-SECs-interlocutory-appeal-request-v-Ripple",
+//         id: 18946455,
+//         url: "https://cryptopanic.com/news/18946455/Judge-rejects-SECs-interlocutory-appeal-request-v-Ripple",
+//         created_at: "2023-10-04T08:01:48Z",
+//     },
+// ]);
+// console.log(res);
 
 // data.title , data.id , data.created_at , data.published_at , data.votes , data.kind,
 // data.domain

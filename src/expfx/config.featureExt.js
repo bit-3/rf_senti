@@ -20,13 +20,15 @@ export const featureExtConfig =  {
 
         // {scriptName:'bert' , scriptType:'external' , scriptSource:'./featureHandlers/ex2.py'} ,
 
-    {scriptName:'readablity' , scriptType:'native' , scriptSource:'./featureHandlers/readablity/rd.js'} ,
+    //{scriptName:'readablity' , scriptType:'native' , scriptSource:'./featureHandlers/readablity/rd.js'} ,
+
+    {scriptName:'readablity' , scriptType:'native' , scriptSource:path.resolve(__dirname, 'featureHandlers/readablity/rd.js')} ,
 
         // its better to handle this path resolutions with path.resolve rather than staticly write
         // the relative path : technical debt
-    {scriptName:'semantic_roles' , scriptType:'external' , scriptSource:'./featureHandlers/boc/boc/src/semanticRoles.py'} ,
+    {scriptName:'semantic_roles' , scriptType:'external' , scriptSource:path.resolve(__dirname , 'featureHandlers/boc/boc/src/semanticRoles.py')} ,
 
-    {scriptName:'bag_of_concepts' , scriptType:'external' , scriptSource:'./featureHandlers/boc/boc/src/boc.py'} ,
+    {scriptName:'bag_of_concepts' , scriptType:'external' , scriptSource:path.resolve(__dirname , 'featureHandlers/boc/boc/src/boc.py')} ,
         // get semantic value
         // get xlnet value
         // get readability value

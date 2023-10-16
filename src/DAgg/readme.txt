@@ -11,3 +11,6 @@ dfetchTableConfig :
 
     todo : you have organize the data that comes from server as input
         NOT FOR TRANING FOR USE AND TEST
+
+
+collecting in all mode you can not put the data on the webserver as http response.
