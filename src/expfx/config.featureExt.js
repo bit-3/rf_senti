@@ -12,15 +12,21 @@ export const featureExtConfig =  {
 
 //        {scriptName:'semanticValue' , scriptType:'native' , scriptSource:'./featureHandlers/fx1.js'},
 
-        {scriptName:'getAge' , scriptType:'native' , scriptSource:'./featureHandlers/fx1.js'} ,
+        // {scriptName:'getAge' , scriptType:'native' , scriptSource:'./featureHandlers/fx1.js'} ,
 
-        {scriptName:'getNat' , scriptType:'native' , scriptSource:'./featureHandlers/fx3.js'},
+        // {scriptName:'getNat' , scriptType:'native' , scriptSource:'./featureHandlers/fx3.js'},
 
-        {scriptName:'xlNet' , scriptType:'external' , scriptSource:'./featureHandlers/ex1.py'},
+        // {scriptName:'xlNet' , scriptType:'external' , scriptSource:'./featureHandlers/ex1.py'},
 
-        {scriptName:'bert' , scriptType:'external' , scriptSource:'./featureHandlers/ex2.py'} ,
+        // {scriptName:'bert' , scriptType:'external' , scriptSource:'./featureHandlers/ex2.py'} ,
 
- //       {scriptName:'readablity' , scriptType:'native' , scriptSource:'./featureHandlers/readablity/rd.js'}
+    {scriptName:'readablity' , scriptType:'native' , scriptSource:'./featureHandlers/readablity/rd.js'} ,
+
+        // its better to handle this path resolutions with path.resolve rather than staticly write
+        // the relative path : technical debt
+    {scriptName:'semantic_roles' , scriptType:'external' , scriptSource:'./featureHandlers/boc/boc/src/semanticRoles.py'} ,
+
+    {scriptName:'bag_of_concepts' , scriptType:'external' , scriptSource:'./featureHandlers/boc/boc/src/boc.py'} ,
         // get semantic value
         // get xlnet value
         // get readability value
@@ -69,7 +75,7 @@ export const configHelper  =  {
                 case 'py' :
                     return 'python3.10';
                 case 'js' :
-                    return 'node';
+                    return 'bun';
                 case 'rs' :
                     return 'rust';
                 case 'go' :

@@ -4,27 +4,41 @@ import { rate, grade } from "flesch-kincaid";
 // process it and return some object {rate and grade}
 
 // we send the batch of things to these process .. it can be one or or 1000 in a single buffer.
-
-
+//process.stdout.write(JSON.stringify('good'))
 
 // use on the fly exe context when ever we trigger some sub process to this process
 (function () {
     //process.stdout.write(JSON.stringify(d.newValue));
+
+
     if (process.argv[2]) {
         const data = JSON.parse(process.argv[2]);
 
-        const res = data.map((item) => {
+
+
+
+        const res = data.rawData.map(item =>{
+
             return {
-                rate: rate(item.news),
-                grade: grade(item.news),
-            };
+                data : item  ,
+                name:data.name,
+                feature : {
+
+                rate : rate(item.title) ,
+                grade: grade(item.title)
+
+
+                }
+            }
+
+
         });
-        // rate : data.text <- rate
-        // grade : data.text <- grade.
 
-        // res is an array
+        data.buffer = res;
+        // for efficiecy
+        data.rawData = null;
+        process.stdout.write(JSON.stringify(data));
 
-        process.stdiout.write(JSON.stringify(res));
         return;
         // the default value of this proc kill is 0
 
@@ -33,10 +47,10 @@ import { rate, grade } from "flesch-kincaid";
 
     // make it dynamic more later by adding some info related to the process.
     console.log("no value supplied to this module.: readablity");
-    process.stdiout.write(JSON.stringify({}));
+    process.stdout.write(JSON.stringify({}));
     return;
 })();
-
-
+//
+//
 
 // other helpers and related stuffs can be refrenced here.
